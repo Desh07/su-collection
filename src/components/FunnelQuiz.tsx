@@ -473,40 +473,7 @@ function ResultScreen() {
         </p>
       </div>
 
-      {/* Score Summary */}
-      <div style={{
-        background: 'var(--blush)', borderRadius: 'var(--r-xl)',
-        padding: '1.5rem 2rem', marginBottom: '1.5rem',
-      }}>
-        <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: 'var(--ink)', marginBottom: '1rem', fontWeight: 700 }}>
-          📊 Your Assessment Scores
-        </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          {PATH_ORDER.map(r => {
-            const score = scoreForRoute(r, result.scores);
-            const pct = normaliseScore(score, PATH_MAX[r]);
-            const isMain = r === route;
-            return (
-              <div key={r} style={{
-                background: 'white', borderRadius: 'var(--r-md)', padding: '0.875rem',
-                border: isMain ? `2px solid ${ROUTE_COLORS[r]}` : '1px solid var(--border)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                  <span>{ROUTE_ICONS[r]}</span>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: isMain ? ROUTE_COLORS[r] : 'var(--ink-muted)' }}>
-                    {ROUTE_LABELS[r]}
-                  </span>
-                  {isMain && <span style={{ fontSize: '0.65rem', background: ROUTE_COLORS[r], color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>Primary</span>}
-                </div>
-                <div style={{ height: 6, background: 'rgba(0,0,0,0.06)', borderRadius: 4, overflow: 'hidden', marginBottom: '0.3rem' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: ROUTE_COLORS[r], borderRadius: 4, transition: 'width 1s ease' }} />
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--ink-light)' }}>{score} / {PATH_MAX[r]} — {result.classification[r]}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+
 
       {/* Secondary routes */}
       {result.secondary.length > 0 && (
