@@ -143,6 +143,70 @@ const GOAL_OPTIONS = [
   { value: 'understand-tools',    label: 'Understand what digital tools or systems my business needs' },
 ];
 
+function CustomSelect({ value, options, onChange, placeholder, hasError, id }: { value: string, options: {value: string, label: string}[], onChange: (val: string) => void, placeholder: string, hasError: boolean, id: string }) {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find(o => o.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest(`#${id}`)) setOpen(false);
+    };
+    if (open) document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [open, id]);
+
+  return (
+    <div id={id} style={{ position: 'relative', width: '100%' }}>
+      <div 
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%',
+          padding: '0.6rem 0.75rem',
+          borderRadius: 'var(--r-sm)',
+          border: `1.5px solid ${hasError ? '#e53e3e' : 'rgba(219,39,119,0.25)'}`,
+          fontSize: '0.875rem',
+          color: value ? 'var(--ink)' : 'var(--ink-light)',
+          fontFamily: 'var(--font-sans)',
+          background: 'white',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          transition: 'border-color 0.2s',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
+      </div>
+      
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0,
+          background: 'white', border: '1px solid rgba(219,39,119,0.25)',
+          borderRadius: 'var(--r-sm)', marginTop: '0.25rem', zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto'
+        }}>
+          {options.map(o => (
+            <div 
+              key={o.value} 
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              style={{
+                padding: '0.6rem 0.75rem', fontSize: '0.875rem', cursor: 'pointer',
+                background: value === o.value ? 'rgba(219,39,119,0.1)' : 'transparent',
+                color: 'var(--ink)', borderBottom: '1px solid rgba(0,0,0,0.05)'
+              }}
+            >
+              {o.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ContactBlock({
   cached,
   onUpdate,
@@ -196,13 +260,6 @@ function ContactBlock({
     transition: 'border-color 0.2s',
   });
 
-  const selectStyle = (field: string): React.CSSProperties => ({
-    ...inputStyle(field),
-    appearance: 'none',
-    cursor: 'pointer',
-    paddingRight: '2rem',
-  });
-
   return (
     <form className="quiz-question contact-form" onSubmit={handleSubmit} noValidate>
       <div className="quiz-q-label">Step 1 of 11 — Registration</div>
@@ -247,26 +304,28 @@ function ContactBlock({
       {/* Situation */}
       <div className="cf-field" style={{ marginBottom: '0.75rem' }}>
         <label className="cf-label">Which best describes you? <span className="cf-req">*</span></label>
-        <div style={{ position: 'relative' }}>
-          <select value={situation} onChange={e => setSituation(e.target.value)} style={selectStyle('situation')}>
-            <option value="">Select…</option>
-            {SITUATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <span style={{ position: 'absolute', right: '0.625rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--ink-light)', fontSize: '0.8rem' }}>▾</span>
-        </div>
+        <CustomSelect 
+          id="select-situation"
+          value={situation} 
+          onChange={setSituation} 
+          options={SITUATION_OPTIONS} 
+          placeholder="Select…" 
+          hasError={!!errors.situation} 
+        />
         {errors.situation && <p className="cf-err">{errors.situation}</p>}
       </div>
 
       {/* Goal */}
       <div className="cf-field" style={{ marginBottom: '0.75rem' }}>
         <label className="cf-label">Primary goal for joining? <span className="cf-req">*</span></label>
-        <div style={{ position: 'relative' }}>
-          <select value={goal} onChange={e => setGoal(e.target.value)} style={selectStyle('goal')}>
-            <option value="">Select…</option>
-            {GOAL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <span style={{ position: 'absolute', right: '0.625rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--ink-light)', fontSize: '0.8rem' }}>▾</span>
-        </div>
+        <CustomSelect 
+          id="select-goal"
+          value={goal} 
+          onChange={setGoal} 
+          options={GOAL_OPTIONS} 
+          placeholder="Select…" 
+          hasError={!!errors.goal} 
+        />
         {errors.goal && <p className="cf-err">{errors.goal}</p>}
       </div>
 
@@ -607,6 +666,15 @@ export default function FunnelQuiz() {
       setQIndex(getNumberedQuestions(answersRef.current, 'step2').length - 1);
     }
   }, [setMode, currentPhase, scrollTop]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || isResult || showVSL || !currentQ) return;

@@ -406,13 +406,21 @@ function Footer() {
   );
 }
 
-// ─── Main App ─────────────────────────────────────────────────────
 function App() {
-  const { openPopup } = useFunnel();
+  const { openPopup, mode } = useFunnel();
+
+  const modeRef = React.useRef(mode);
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   // Show popup after 3 seconds on first load
   useEffect(() => {
-    const timer = setTimeout(openPopup, 3000);
+    const timer = setTimeout(() => {
+      if (modeRef.current === 'website') {
+        openPopup();
+      }
+    }, 3000);
     return () => clearTimeout(timer);
   }, [openPopup]);
 
