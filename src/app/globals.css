@@ -1656,6 +1656,9 @@ p { font-size: 1.05rem; color: var(--ink-muted); line-height: 1.75; }
   .quiz-header-logo span { display: none; } /* hide text on very small screens, show only logo */
   .quiz-progress-wrap { max-width: 160px; margin: 0 0.75rem; }
   .contact-grid { grid-template-columns: 1fr; } /* stack input fields on mobile */
+  .footer-inner { flex-direction: column; text-align: center; gap: 1.5rem; }
+  .footer-logo { flex-direction: column; text-align: center; }
+  .cta-banner .btn-lg { width: 100%; padding: 0.875rem 1rem; font-size: 0.95rem; white-space: normal; }
   
   /* Make quiz full screen on mobile */
   .quiz-overlay { padding: 0; }
