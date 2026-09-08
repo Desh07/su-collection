@@ -81,7 +81,6 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     phase: 'step2',
     stepLabel: 'Question',
     title: 'Do you currently operate a business or earn income through a product or service?',
-    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No — I am not in business yet',               value: 0  },
       { key: 'B', label: 'Not yet, but I am planning to start',         value: 3  },
@@ -98,7 +97,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     phase: 'step2',
     stepLabel: 'Question',
     title: 'Which best describes where your business is right now?',
-    showIf: (a) => isBusinessRelevant(a) && (a.businessOwnership ?? 0) > 0,
+    showIf: (a) => (a.businessOwnership ?? 0) > 0,
     choices: [
       { key: 'A', label: 'Idea stage — not started yet',                        value: 1  },
       { key: 'B', label: 'Started but inconsistent — some income, not reliable', value: 4  },
@@ -117,7 +116,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     stepLabel: 'Question',
     title: 'What are the biggest challenges in your business right now?',
     subtitle: 'Select all that apply — you can choose more than one',
-    showIf: (a) => isBusinessRelevant(a) && ((a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning'),
+    showIf: (a) => (a.businessOwnership ?? 0) > 0,
     choices: [
       { key: 'A', label: 'I do not know how to get more customers',                  value: 'more-customers'   },
       { key: 'B', label: 'I do not know how to market my business online',           value: 'online-marketing' },
@@ -137,7 +136,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     phase: 'step2',
     stepLabel: 'Question',
     title: 'Where is your business currently active online?',
-    showIf: (a) => isBusinessRelevant(a) && ((a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning'),
+    showIf: (a) => (a.businessOwnership ?? 0) > 0,
     choices: [
       { key: 'A', label: 'No online presence at all',                                    value: 'none'         },
       { key: 'B', label: 'Personal Facebook or WhatsApp only',                           value: 'personal-fb'  },
@@ -156,7 +155,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     stepLabel: 'Question',
     title: 'How do you currently get customers or sales?',
     subtitle: 'Select all that apply',
-    showIf: (a) => isBusinessRelevant(a) && ((a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning'),
+    showIf: (a) => (a.businessOwnership ?? 0) > 0,
     choices: [
       { key: 'A', label: 'Walk-in or local customers',          value: 'walk-in'    },
       { key: 'B', label: 'Facebook',                            value: 'facebook'   },
@@ -197,7 +196,6 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     phase: 'step3',
     stepLabel: 'Intent',
     title: 'If you received a clear step-by-step plan, would you be comfortable implementing improvements yourself?',
-    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No — I need someone to guide or do it for me',      value: 0  },
       { key: 'B', label: 'Maybe — depending on the difficulty',               value: 4  },
@@ -214,7 +212,6 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     phase: 'step3',
     stepLabel: 'Intent',
     title: 'Would you be interested in receiving structured guidance for growing your business?',
-    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No',                                              value: 0  },
       { key: 'B', label: 'Maybe',                                           value: 3  },
@@ -232,7 +229,6 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     stepLabel: 'Intent',
     title: 'Do you currently need a professional team to build or implement something for your business?',
     hint: 'This includes websites, sales funnels, social media systems, automation, or any other digital work.',
-    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No — I can handle it myself',                              value: 0  },
       { key: 'B', label: 'Not sure yet',                                             value: 2  },
@@ -250,7 +246,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     stepLabel: 'Intent',
     title: 'What do you need help implementing?',
     subtitle: 'Select all that apply',
-    showIf: (a) => isBusinessRelevant(a) && (a.dfyRequirement ?? 0) >= 5,
+    showIf: (a) => (a.dfyRequirement ?? 0) >= 5,
     choices: [
       { key: 'A', label: 'Website',                     value: 'website'     },
       { key: 'B', label: 'Online Store',                value: 'online-store'},

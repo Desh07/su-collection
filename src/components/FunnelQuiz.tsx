@@ -370,7 +370,7 @@ function SingleChoice({
       <div className="quiz-choices">
         {question.choices?.map(c => (
           <button
-            key={c.key}
+            key={`${question.field}-${c.key}`}
             type="button"
             className={`quiz-choice ${selected === c.value ? 'selected' : ''}`}
             onClick={() => onSelect(c.value)}
@@ -410,7 +410,7 @@ function MultiChoice({
       <div className="quiz-choices">
         {question.choices?.map(c => (
           <button
-            key={c.key}
+            key={`${question.field}-${c.key}`}
             type="button"
             className={`quiz-choice ${selected.includes(c.value) ? 'selected' : ''}`}
             onClick={() => onToggle(c.value)}
@@ -692,7 +692,12 @@ export default function FunnelQuiz() {
             {!isResult && !showVSL && (
               <div className="quiz-progress-wrap">
                 <div className="quiz-progress-label">
-                  {currentPhase === 'step1' ? 'Registration' : `Phase ${currentPhase.replace('step', '')} — ${Math.min(qIndex + 1, questions.length)} of ${questions.length}`}
+                  {currentPhase === 'step1' 
+                    ? 'Registration' 
+                    : currentPhase === 'step2'
+                      ? `Diagnostic Form — ${Math.min(qIndex + 1, questions.length)} of ${questions.length}`
+                      : `Assessment Form — ${Math.min(qIndex + 1, questions.length)} of ${questions.length}`
+                  }
                 </div>
               </div>
             )}
