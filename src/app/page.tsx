@@ -288,7 +288,7 @@ function LearnSection() {
       <div className="container">
         <div className="section-header centered">
           <div className="section-eyebrow">📚 Free Workshop</div>
-          <h2>What You'll Discover on 19 September</h2>
+          <h2>What You&apos;ll Discover on 19 September</h2>
           <p>A live, structured session covering both the technical and business sides of tailoring — delivered in Sinhala.</p>
         </div>
 
