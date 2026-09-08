@@ -493,50 +493,85 @@ function ResultScreen() {
   );
 }
 
+// ─── VSL Placeholder Component ─────────────────────────────────────
+
+function VSLPlaceholder({
+  phase,
+  title,
+  description,
+  onContinue,
+}: {
+  phase: string;
+  title: string;
+  description: string;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="quiz-question" style={{ animation: 'fadeUp 0.5s var(--ease) both', textAlign: 'center' }}>
+      <div className="quiz-q-label">Step {phase === 'step2' ? '2' : '3'} of 3 — {phase === 'step2' ? 'Diagnostic Assessment' : 'Your Personalised Pitch'}</div>
+      <h2 className="quiz-q-title" style={{ marginBottom: '1.5rem' }}>{title}</h2>
+      
+      <div style={{
+        background: 'var(--ink)', width: '100%', aspectRatio: '16/9',
+        borderRadius: 'var(--r-xl)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        color: 'white', marginBottom: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{
+          width: '4rem', height: '4rem', borderRadius: '50%', background: 'var(--rose)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1rem', cursor: 'pointer'
+        }}>
+          ▶
+        </div>
+        <p style={{ margin: 0, fontWeight: 600, color: 'var(--ink-light)', fontSize: '0.9rem' }}>Micro-VSL Placeholder ({phase})</p>
+      </div>
+
+      <p style={{ color: 'var(--ink-muted)', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: 1.6 }}>{description}</p>
+      
+      <button className="btn btn-primary btn-lg" onClick={onContinue} style={{ width: '100%' }}>
+        Continue to Questions →
+      </button>
+    </div>
+  );
+}
+
 // ─── Main Quiz Component ─────────────────────────────────────────
 
 export default function FunnelQuiz() {
-  const { mode, answers, updateAnswers, submitQuiz, closeAll } = useFunnel();
+  const { mode, answers, updateAnswers, secureLead, submitQuiz, setMode, closeAll } = useFunnel();
 
-  // Local state for current session
   const [qIndex, setQIndex]           = useState(0);
-  const [liveAnswers, setLiveAnswers]  = useState<Record<string, any>>({});
-  const [multiVals, setMultiVals]      = useState<string[]>([]);
-  const mainPanelRef                   = useRef<HTMLDivElement>(null);
+  const [liveAnswers, setLiveAnswers] = useState<Record<string, any>>({});
+  const [multiVals, setMultiVals]     = useState<string[]>([]);
+  const [watchedVSLs, setWatchedVSLs] = useState<string[]>([]);
+  const mainPanelRef                  = useRef<HTMLDivElement>(null);
 
-  const isOpen   = mode === 'quiz' || mode === 'result';
+  const isOpen   = mode.startsWith('step') || mode === 'result';
   const isResult = mode === 'result';
+  const currentPhase = mode.split('-')[0]; // 'step1', 'step2', 'step3', or 'result'
 
-  // Merge stored answers with live session answers for scoring
   const mergedAnswers = { ...answers, ...liveAnswers };
-
-  // Compute active questions dynamically (conditional logic)
-  const questions = getNumberedQuestions(mergedAnswers);
+  
+  // Only get questions for the active phase
+  const questions = getNumberedQuestions(mergedAnswers, currentPhase);
   const currentQ  = questions[qIndex];
 
-  // Keep refs for latest state to avoid stale closures in setTimeout
   const answersRef = useRef(mergedAnswers);
   answersRef.current = mergedAnswers;
   const qIndexRef = useRef(qIndex);
   qIndexRef.current = qIndex;
 
-  // Questions excluding contact block (for progress/path panel)
-  const questionQs = questions.filter(q => q.type !== 'contact-block');
-  const progress   = isResult
-    ? 100
-    : qIndex === 0 ? 0 : Math.round(((qIndex - 1) / questionQs.length) * 100);
+  const showVSL = (currentPhase === 'step2' || currentPhase === 'step3') && !watchedVSLs.includes(currentPhase);
 
   const scrollTop = useCallback(() => {
     mainPanelRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const goNext = useCallback((immediatePatch?: Record<string, any>) => {
-    // If called synchronously with a patch, apply it to the ref immediately for evaluation
     const latestAnswers = immediatePatch 
       ? { ...answersRef.current, ...immediatePatch } 
       : answersRef.current;
       
-    const latestQuestions = getNumberedQuestions(latestAnswers);
+    const latestQuestions = getNumberedQuestions(latestAnswers, currentPhase);
     const currentIndex = qIndexRef.current;
 
     if (currentIndex < latestQuestions.length - 1) {
@@ -544,10 +579,18 @@ export default function FunnelQuiz() {
       setMultiVals([]);
       scrollTop();
     } else {
-      // Final submission
-      submitQuiz(latestAnswers);
+      // Phase Transition Logic
+      if (currentPhase === 'step1') {
+        secureLead(latestAnswers); // Transitions to step2-diagnostic
+        setQIndex(0);
+      } else if (currentPhase === 'step2') {
+        setMode('step3-intent');
+        setQIndex(0);
+      } else if (currentPhase === 'step3') {
+        submitQuiz(latestAnswers);
+      }
     }
-  }, [submitQuiz, scrollTop]);
+  }, [secureLead, submitQuiz, setMode, currentPhase, scrollTop]);
 
   const commitAnswer = useCallback((patch: Record<string, any>) => {
     setLiveAnswers(prev => ({ ...prev, ...patch }));
@@ -558,12 +601,15 @@ export default function FunnelQuiz() {
     if (qIndexRef.current > 0) {
       setQIndex(qIndexRef.current - 1);
       scrollTop();
+    } else if (currentPhase === 'step3') {
+      // Allow going back to step2 from step3
+      setMode('step2-diagnostic');
+      setQIndex(getNumberedQuestions(answersRef.current, 'step2').length - 1);
     }
-  }, [scrollTop]);
+  }, [setMode, currentPhase, scrollTop]);
 
-  // Keyboard shortcuts (only during single-choice and multi-choice)
   useEffect(() => {
-    if (!isOpen || isResult || !currentQ) return;
+    if (!isOpen || isResult || showVSL || !currentQ) return;
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
 
@@ -571,8 +617,9 @@ export default function FunnelQuiz() {
         const choice = currentQ.choices.find(c => c.key === e.key.toUpperCase());
         if (choice) {
           const patch = { [currentQ.field]: choice.value };
+          if (currentQ.field === 'dfyRequirement') patch.dfySpecific = choice.value === 10;
           commitAnswer(patch);
-          setTimeout(() => goNext(), 320); // render will happen, answersRef updates
+          setTimeout(() => goNext(), 320);
           return;
         }
       }
@@ -580,60 +627,70 @@ export default function FunnelQuiz() {
         if (multiVals.length > 0) {
           const patch = { [currentQ.field]: multiVals };
           commitAnswer(patch);
-          goNext(patch); // synchronous, pass the patch
+          goNext(patch);
         }
         return;
       }
       if (currentQ.type === 'multi-choice' && currentQ.choices) {
         const choice = currentQ.choices.find(c => c.key === e.key.toUpperCase());
         if (choice) {
-          setMultiVals(prev =>
-            prev.includes(choice.value)
-              ? prev.filter(v => v !== choice.value)
-              : [...prev, choice.value]
-          );
+          setMultiVals(prev => prev.includes(choice.value) ? prev.filter(v => v !== choice.value) : [...prev, choice.value]);
         }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, isResult, currentQ, multiVals, commitAnswer, goNext]);
+  }, [isOpen, isResult, showVSL, currentQ, multiVals, commitAnswer, goNext]);
 
   if (!isOpen) return null;
 
   return (
     <div className="quiz-overlay">
       <div className="quiz-backdrop" onClick={closeAll} />
-
       <div className="quiz-shell-wide">
-
-        {/* ── LEFT: main question panel ── */}
         <div className="quiz-main-panel" ref={mainPanelRef}>
-
-          {/* Sticky header bar */}
           <div className="quiz-header-bar">
             <div className="quiz-header-logo">
               <Image src={logoSrc} alt="Su Collection" width={34} height={34} style={{ borderRadius: '50%' }} />
               <span>Su Collection × UVA VEC</span>
             </div>
-            {!isResult && (
+            {!isResult && !showVSL && (
               <div className="quiz-progress-wrap">
                 <div className="quiz-progress-label">
-                  {qIndex === 0 ? 'Registration' : `${Math.min(qIndex, questionQs.length)} of ${questionQs.length}`}
-                </div>
-                <div className="quiz-progress-bar">
-                  <div className="quiz-progress-fill" style={{ width: `${progress}%` }} />
+                  {currentPhase === 'step1' ? 'Registration' : `Phase ${currentPhase.replace('step', '')} — ${Math.min(qIndex + 1, questions.length)} of ${questions.length}`}
                 </div>
               </div>
             )}
             <button className="quiz-close-btn" onClick={closeAll} aria-label="Close">✕</button>
           </div>
 
-          {/* Result screen */}
           {isResult && <ResultScreen />}
 
-          {/* Question screens */}
-          {!isResult && currentQ && (
+          {!isResult && showVSL && currentPhase === 'step2' && (
+            <VSLPlaceholder 
+              phase="step2"
+              title="Let's diagnose your exact situation"
+              description="Watch this short video to understand why we ask these questions and how it helps us craft the perfect business or tailoring growth plan for you."
+              onContinue={() => {
+                setWatchedVSLs(prev => [...prev, 'step2']);
+                scrollTop();
+              }}
+            />
+          )}
+
+          {!isResult && showVSL && currentPhase === 'step3' && (
+            <VSLPlaceholder 
+              phase="step3"
+              title="Here's what we recommend"
+              description="Based on your answers, we have a few specific ways we can help you grow. Watch this video to see how our mentorship and Done-For-You programs work."
+              onContinue={() => {
+                setWatchedVSLs(prev => [...prev, 'step3']);
+                scrollTop();
+              }}
+            />
+          )}
+
+          {!isResult && !showVSL && currentQ && (
             <>
               {currentQ.type === 'contact-block' && (
                 <ContactBlock
@@ -649,10 +706,7 @@ export default function FunnelQuiz() {
                   selected={mergedAnswers[currentQ.field]}
                   onSelect={(val) => {
                     const patch: Record<string,any> = { [currentQ.field]: val };
-                    // Special: set dfySpecific flag
-                    if (currentQ.field === 'dfyRequirement') {
-                      patch.dfySpecific = val === 10;
-                    }
+                    if (currentQ.field === 'dfyRequirement') patch.dfySpecific = val === 10;
                     commitAnswer(patch);
                     setTimeout(() => goNext(), 320);
                   }}
@@ -663,29 +717,22 @@ export default function FunnelQuiz() {
                 <MultiChoice
                   question={currentQ}
                   selected={multiVals}
-                  onToggle={(val) =>
-                    setMultiVals(prev =>
-                      prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-                    )
-                  }
+                  onToggle={(val) => setMultiVals(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val])}
                   onContinue={() => {
                     const patch = { [currentQ.field]: multiVals };
                     commitAnswer(patch);
-                    goNext(patch); // synchronous, pass patch
+                    goNext(patch);
                   }}
                 />
               )}
 
-              {/* Navigation bar (below questions) */}
               {currentQ.type !== 'contact-block' && (
                 <div className="quiz-nav">
                   <span style={{ fontSize: '0.78rem', color: 'var(--ink-light)' }}>
-                    {questions.length - 1 - qIndex > 0
-                      ? `${questions.length - 1 - qIndex} step${questions.length - 1 - qIndex > 1 ? 's' : ''} remaining`
-                      : 'Last question — almost done!'}
+                    {questions.length - 1 - qIndex > 0 ? `${questions.length - 1 - qIndex} questions remaining in this phase` : 'Last question of this phase!'}
                   </span>
                   <div className="quiz-nav-arrows">
-                    <button className="quiz-nav-arrow" onClick={goPrev} disabled={qIndex === 0} title="Back">↑</button>
+                    <button className="quiz-nav-arrow" onClick={goPrev} disabled={currentPhase === 'step2' && qIndex === 0} title="Back">↑</button>
                     <button className="quiz-nav-arrow" onClick={goNext} title="Skip / Next">↓</button>
                   </div>
                 </div>
@@ -694,16 +741,13 @@ export default function FunnelQuiz() {
           )}
         </div>
 
-        {/* ── RIGHT: live path indicator sidebar ── */}
         {!isResult && (
           <PathIndicatorPanel
             liveAnswers={mergedAnswers}
-            questionIndex={Math.max(0, qIndex - 1)} // don't count contact block
-            totalQ={questionQs.length}
+            questionIndex={currentPhase === 'step1' ? 0 : currentPhase === 'step2' ? qIndex + 1 : qIndex + 10}
+            totalQ={20} // arbitrary high number for visual progress
           />
         )}
-
-        {/* On result: show full-width — no sidebar */}
       </div>
     </div>
   );

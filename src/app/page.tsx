@@ -9,7 +9,7 @@ import FunnelQuiz from '../components/FunnelQuiz';
 
 // ─── Navbar ──────────────────────────────────────────────────────
 function Navbar() {
-  const { openPopup } = useFunnel();
+  const { startQuiz } = useFunnel();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ function Navbar() {
             <li><a href="#testimonials">Community</a></li>
           </ul>
 
-          <button className="btn btn-primary" onClick={openPopup} style={{ padding: '0.7rem 1.5rem', fontSize: '0.9rem' }}>
+          <button className="btn btn-primary" onClick={startQuiz} style={{ padding: '0.7rem 1.5rem', fontSize: '0.9rem' }}>
             Register →
           </button>
         </div>
@@ -48,7 +48,7 @@ function Navbar() {
 
 // ─── Hero Section ─────────────────────────────────────────────────
 function HeroSection() {
-  const { openPopup } = useFunnel();
+  const { startQuiz } = useFunnel();
 
   return (
     <section className="hero">
@@ -76,7 +76,7 @@ function HeroSection() {
             </p>
 
             <div className="animate-fade-up delay-300" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary btn-lg" onClick={openPopup}>
+              <button className="btn btn-primary btn-lg" onClick={startQuiz}>
                 Find Your Path — Free Quiz
               </button>
               <a href="#learn" className="btn btn-outline btn-lg">
@@ -130,7 +130,7 @@ function HeroSection() {
               </ul>
 
               <div className="hero-card-cta">
-                <button className="btn btn-primary" style={{ width: '100%' }} onClick={openPopup}>
+                <button className="btn btn-primary" style={{ width: '100%' }} onClick={startQuiz}>
                   Register for Free →
                 </button>
                 <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--ink-light)', marginBottom: 0 }}>
@@ -205,7 +205,7 @@ function AboutSection() {
 
 // ─── Paths / Offer Architecture ───────────────────────────────────
 function PathsSection() {
-  const { openPopup } = useFunnel();
+  const { startQuiz } = useFunnel();
 
   const paths = [
     {
@@ -263,7 +263,7 @@ function PathsSection() {
 
         <div className="text-center" style={{ marginTop: '3rem' }}>
           <p style={{ marginBottom: '1.5rem' }}>Not sure which path fits you? Take the free 5-minute quiz.</p>
-          <button className="btn btn-primary btn-lg" onClick={openPopup}>
+          <button className="btn btn-primary btn-lg" onClick={startQuiz}>
             Discover Your Path
           </button>
         </div>
@@ -362,7 +362,7 @@ function TestimonialsSection() {
 
 // ─── CTA Banner ───────────────────────────────────────────────────
 function CTABanner() {
-  const { openPopup } = useFunnel();
+  const { startQuiz } = useFunnel();
 
   return (
     <section className="section">
@@ -373,7 +373,7 @@ function CTABanner() {
             Take the free 5-minute quiz and register for the 19 September workshop.
             You'll receive a personalised roadmap — no cost, no obligation.
           </p>
-          <button className="btn btn-white btn-lg" onClick={openPopup}>
+          <button className="btn btn-white btn-lg" onClick={startQuiz}>
             Take the Free Quiz Now →
           </button>
         </div>

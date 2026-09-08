@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { QuizAnswers, RouteResult, calculateScores } from '../lib/scoring';
+import { getActiveQuestions } from '../lib/questions';
 
-export type FunnelMode = 'website' | 'entry-popup' | 'quiz' | 'result';
+export type FunnelMode = 'website' | 'entry-popup' | 'step1-contact' | 'step2-diagnostic' | 'step3-intent' | 'result';
 
 interface FunnelState {
   mode: FunnelMode;
@@ -17,8 +18,10 @@ interface FunnelContextValue {
   result: RouteResult | null;
   openPopup: () => void;
   startQuiz: () => void;
+  setMode: (mode: FunnelMode) => void;
   closeAll: () => void;
   updateAnswers: (patch: Partial<QuizAnswers>) => void;
+  secureLead: (answers: Partial<QuizAnswers>) => void;
   submitQuiz: (finalAnswers: Partial<QuizAnswers>) => void;
 }
 
@@ -35,28 +38,71 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     setState(s => ({ ...s, mode: 'entry-popup' })), []);
 
   const startQuiz = useCallback(() =>
-    setState(s => ({ ...s, mode: 'quiz' })), []);
+    setState(s => ({ ...s, mode: 'step1-contact' })), []);
+
+  const setMode = useCallback((mode: FunnelMode) =>
+    setState(s => ({ ...s, mode })), []);
 
   const closeAll = useCallback(() =>
     setState(s => ({ ...s, mode: 'website' })), []);
 
-  const updateAnswers = useCallback((patch: Partial<QuizAnswers>) =>
-    setState(s => ({ ...s, answers: { ...s.answers, ...patch } as Partial<QuizAnswers> })), []);
-
-  const submitQuiz = useCallback((finalAnswers: Partial<QuizAnswers>) => {
+  const updateAnswers = useCallback((patch: Partial<QuizAnswers>) => {
     setState(s => {
-      const merged = { ...s.answers, ...finalAnswers } as Partial<QuizAnswers>;
-      const result = calculateScores(merged);
+      const merged = { ...s.answers, ...patch } as Partial<QuizAnswers>;
+      
+      // Stale Answer Clearing Logic
+      const activeQuestions = getActiveQuestions(merged);
+      const activeFields = activeQuestions.map(q => q.field);
+      
+      // Allow fields that aren't mapped directly to questions (like name, phone, etc.)
+      const contactFields = ['name', 'phone', 'email', 'location', 'currentSituation', 'primaryGoal', 'consent', 'dfySpecific'];
+      
+      const scrubbed = { ...merged };
+      for (const key of Object.keys(scrubbed)) {
+        if (!contactFields.includes(key) && !activeFields.includes(key)) {
+          delete scrubbed[key as keyof QuizAnswers];
+        }
+      }
 
-      // ── CRM Mock log (replace with real API call in production)
+      return { ...s, answers: scrubbed };
+    });
+  }, []);
+
+  const secureLead = useCallback((patch: Partial<QuizAnswers>) => {
+    setState(s => {
+      const merged = { ...s.answers, ...patch } as Partial<QuizAnswers>;
       console.log('═══════════════════════════════════');
-      console.log('[CRM] Lead Submitted');
+      console.log('[CRM API MOCK] Step 1 — Lead Secured');
       console.log('  Name:    ', merged.name);
       console.log('  Phone:   ', merged.phone);
       console.log('  Email:   ', merged.email);
       console.log('  Location:', merged.location);
       console.log('  Situation:', merged.currentSituation);
       console.log('  Goal:    ', merged.primaryGoal);
+      console.log('═══════════════════════════════════');
+      return { ...s, answers: merged, mode: 'step2-diagnostic' };
+    });
+  }, []);
+
+  const submitQuiz = useCallback((finalAnswers: Partial<QuizAnswers>) => {
+    setState(s => {
+      const merged = { ...s.answers, ...finalAnswers } as Partial<QuizAnswers>;
+      
+      // Final stale clear before scoring
+      const activeQuestions = getActiveQuestions(merged);
+      const activeFields = activeQuestions.map(q => q.field);
+      const contactFields = ['name', 'phone', 'email', 'location', 'currentSituation', 'primaryGoal', 'consent', 'dfySpecific'];
+      const scrubbed = { ...merged };
+      for (const key of Object.keys(scrubbed)) {
+        if (!contactFields.includes(key) && !activeFields.includes(key)) {
+          delete scrubbed[key as keyof QuizAnswers];
+        }
+      }
+
+      const result = calculateScores(scrubbed);
+
+      console.log('═══════════════════════════════════');
+      console.log('[CRM API MOCK] Step 3 — Final Intent & Qualification');
       console.log('  Scores →  Technical:', result.scores.technical,
         '| Business:', result.scores.business,
         '| DIY:', result.scores.diy,
@@ -66,7 +112,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       console.log('  CRM Tags:     ', result.crmTags);
       console.log('═══════════════════════════════════');
 
-      return { ...s, answers: merged, result, mode: 'result' };
+      return { ...s, answers: scrubbed, result, mode: 'result' };
     });
   }, []);
 
@@ -77,8 +123,10 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       result: state.result,
       openPopup,
       startQuiz,
+      setMode,
       closeAll,
       updateAnswers,
+      secureLead,
       submitQuiz,
     }}>
       {children}

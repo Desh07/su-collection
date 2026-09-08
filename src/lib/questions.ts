@@ -1,4 +1,4 @@
-// Quiz question definitions — 100% compliant with Milestone 2 §1.1 + §2.1–2.10
+// Quiz question definitions — 100% compliant with Milestone 2 §1.1 + §2.1–2.10 and Appx A
 
 export interface ChoiceOption {
   key: string;
@@ -10,38 +10,60 @@ export interface QuizQuestion {
   id: string;
   field: string;
   type: 'contact-block' | 'single-choice' | 'multi-choice';
-  stepLabel: string;       // e.g. "Question 2 of 11"
+  phase: 'step1' | 'step2' | 'step3'; // New phase categorization
+  stepLabel: string;
   title: string;
   subtitle?: string;
-  hint?: string;           // shown below choices as small tip
+  hint?: string;
   choices?: ChoiceOption[];
   showIf?: (answers: Record<string, any>) => boolean;
 }
 
-// ─── ALL QUESTIONS — Milestone 2 §1.1 + §2.1–2.10 ───────────────
+// ─── Relevance Helpers ───────────────────────────────────────────
+
+export function isTechnicalRelevant(a: Record<string, any>): boolean {
+  const sit = a.currentSituation;
+  const goal = a.primaryGoal;
+  const sitTech = ['learning', 'job', 'tailoring-biz'].includes(sit);
+  const goalTech = ['improve-skills', 'advanced-techniques', 'start-earning'].includes(goal);
+  return sitTech || goalTech;
+}
+
+export function isBusinessRelevant(a: Record<string, any>): boolean {
+  const sit = a.currentSituation;
+  const goal = a.primaryGoal;
+  const sitBiz = ['tailoring-biz', 'other-biz', 'planning'].includes(sit);
+  const goalBiz = ['grow-tailoring-biz', 'grow-business-online', 'understand-tools'].includes(goal);
+  return sitBiz || goalBiz;
+}
+
+// ─── ALL QUESTIONS ───────────────────────────────────────────────
 
 export const QUIZ_QUESTIONS: QuizQuestion[] = [
 
-  // ══ CONTACT BLOCK — §1.1 (mandatory registration fields) ════════
-  // Note: currentSituation + primaryGoal are also §1.1 mandatory and
-  // are captured inside the contact block as sub-fields (see FunnelQuiz)
+  // ══ STEP 1: CONTACT BLOCK ═════════════════════════════════════
   {
     id: 'contact',
     field: '_contact',
     type: 'contact-block',
+    phase: 'step1',
     stepLabel: 'Registration',
     title: 'Let\'s get you registered for the Free Workshop',
     subtitle: 'Your details are secured immediately. We\'ll then personalise your path based on a few quick questions.',
   },
 
-  // ══ Q1 — §2.1 Tailoring Skill Level ════════════════════════════
+  // ══ STEP 2: DIAGNOSTIC QUESTIONS ════════════════════════════════
+
+  // TECH-01 — §2.1 Tailoring Skill Level
   {
     id: 'tailoringSkill',
     field: 'tailoringSkill',
     type: 'single-choice',
-    stepLabel: 'Question 1 of 10',
+    phase: 'step2',
+    stepLabel: 'Question',
     title: 'How would you describe your current tailoring skill level?',
     hint: 'Press A–E on your keyboard to select instantly.',
+    showIf: isTechnicalRelevant,
     choices: [
       { key: 'A', label: 'Beginner — just starting out',                              value: 3  },
       { key: 'B', label: 'I know the basics but want to improve',                     value: 5  },
@@ -51,28 +73,15 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q2 — §2.7 Technical Mentorship Interest ════════════════════
-  {
-    id: 'technicalInterest',
-    field: 'technicalInterest',
-    type: 'single-choice',
-    stepLabel: 'Question 2 of 10',
-    title: 'Are you interested in receiving structured guidance to improve your tailoring skills?',
-    choices: [
-      { key: 'A', label: 'Not currently',                               value: 0  },
-      { key: 'B', label: 'Maybe — I would like to know more',           value: 3  },
-      { key: 'C', label: 'Yes — I am interested',                       value: 7  },
-      { key: 'D', label: 'Yes — I am actively looking for this now',    value: 10 },
-    ],
-  },
-
-  // ══ Q3 — §2.2 Business Ownership ═══════════════════════════════
+  // BUS-01 — §2.2 Business Ownership
   {
     id: 'businessOwnership',
     field: 'businessOwnership',
     type: 'single-choice',
-    stepLabel: 'Question 3 of 10',
+    phase: 'step2',
+    stepLabel: 'Question',
     title: 'Do you currently operate a business or earn income through a product or service?',
+    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No — I am not in business yet',               value: 0  },
       { key: 'B', label: 'Not yet, but I am planning to start',         value: 3  },
@@ -81,32 +90,34 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q4 — §2.3 Business Maturity (conditional: businessOwnership > 0)
+  // BUS-04 — §2.3 Business Maturity
   {
     id: 'businessMaturity',
     field: 'businessMaturity',
     type: 'single-choice',
-    stepLabel: 'Question 4 of 10',
+    phase: 'step2',
+    stepLabel: 'Question',
     title: 'Which best describes where your business is right now?',
-    showIf: (a) => (a.businessOwnership ?? 0) > 0,
+    showIf: (a) => isBusinessRelevant(a) && (a.businessOwnership ?? 0) > 0,
     choices: [
       { key: 'A', label: 'Idea stage — not started yet',                        value: 1  },
       { key: 'B', label: 'Started but inconsistent — some income, not reliable', value: 4  },
       { key: 'C', label: 'Regular customers but growth is limited',             value: 8  },
       { key: 'D', label: 'Stable business — seeking meaningful growth',         value: 10 },
-      { key: 'E', label: 'Growing business with operational or digital challenges', value: 10 },
+      { key: 'E', label: 'Growing business with operational or digital challenges', value: 10.1 },
     ],
   },
 
-  // ══ Q5 — §2.4 Business Problems (conditional: has/plans business)
+  // BUS-05 — §2.4 Business Problems
   {
     id: 'problems',
     field: 'problems',
     type: 'multi-choice',
-    stepLabel: 'Question 5 of 10',
+    phase: 'step2',
+    stepLabel: 'Question',
     title: 'What are the biggest challenges in your business right now?',
     subtitle: 'Select all that apply — you can choose more than one',
-    showIf: (a) => (a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning',
+    showIf: (a) => isBusinessRelevant(a) && ((a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning'),
     choices: [
       { key: 'A', label: 'I do not know how to get more customers',                  value: 'more-customers'   },
       { key: 'B', label: 'I do not know how to market my business online',           value: 'online-marketing' },
@@ -118,14 +129,15 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q6 — §2.5 Digital Presence (conditional: has/plans business)
+  // BUS-06 — §2.5 Digital Presence
   {
     id: 'digitalPresence',
     field: 'digitalPresence',
     type: 'single-choice',
-    stepLabel: 'Question 6 of 10',
+    phase: 'step2',
+    stepLabel: 'Question',
     title: 'Where is your business currently active online?',
-    showIf: (a) => (a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning',
+    showIf: (a) => isBusinessRelevant(a) && ((a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning'),
     choices: [
       { key: 'A', label: 'No online presence at all',                                    value: 'none'         },
       { key: 'B', label: 'Personal Facebook or WhatsApp only',                           value: 'personal-fb'  },
@@ -135,15 +147,16 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q7 — §2.6 Sales Channels (conditional: has/plans business)
+  // BUS-07 — §2.6 Sales Channels
   {
     id: 'salesChannels',
     field: 'salesChannels',
     type: 'multi-choice',
-    stepLabel: 'Question 7 of 10',
+    phase: 'step2',
+    stepLabel: 'Question',
     title: 'How do you currently get customers or sales?',
     subtitle: 'Select all that apply',
-    showIf: (a) => (a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning',
+    showIf: (a) => isBusinessRelevant(a) && ((a.businessOwnership ?? 0) > 0 || a.currentSituation === 'planning'),
     choices: [
       { key: 'A', label: 'Walk-in or local customers',          value: 'walk-in'    },
       { key: 'B', label: 'Facebook',                            value: 'facebook'   },
@@ -157,13 +170,34 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q8 — §2.8 DIY Preference ════════════════════════════════════
+  // ══ STEP 3: CONDITIONAL PITCH & INTENT ══════════════════════════
+
+  // TECH-02 / INT-01 — §2.7 Technical Mentorship Interest
+  {
+    id: 'technicalInterest',
+    field: 'technicalInterest',
+    type: 'single-choice',
+    phase: 'step3',
+    stepLabel: 'Intent',
+    title: 'Are you interested in receiving structured guidance to improve your tailoring skills?',
+    showIf: isTechnicalRelevant,
+    choices: [
+      { key: 'A', label: 'Not currently',                               value: 0  },
+      { key: 'B', label: 'Maybe — I would like to know more',           value: 3  },
+      { key: 'C', label: 'Yes — I am interested',                       value: 7  },
+      { key: 'D', label: 'Yes — I am actively looking for this now',    value: 10 },
+    ],
+  },
+
+  // INT-02 — §2.8 DIY Preference
   {
     id: 'diyPreference',
     field: 'diyPreference',
     type: 'single-choice',
-    stepLabel: 'Question 8 of 10',
+    phase: 'step3',
+    stepLabel: 'Intent',
     title: 'If you received a clear step-by-step plan, would you be comfortable implementing improvements yourself?',
+    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No — I need someone to guide or do it for me',      value: 0  },
       { key: 'B', label: 'Maybe — depending on the difficulty',               value: 4  },
@@ -172,13 +206,15 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q9 — §2.9 Business Mentorship Interest ══════════════════════
+  // INT-03 — §2.9 Business Mentorship Interest
   {
     id: 'mentorshipInterest',
     field: 'mentorshipInterest',
     type: 'single-choice',
-    stepLabel: 'Question 9 of 10',
+    phase: 'step3',
+    stepLabel: 'Intent',
     title: 'Would you be interested in receiving structured guidance for growing your business?',
+    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No',                                              value: 0  },
       { key: 'B', label: 'Maybe',                                           value: 3  },
@@ -187,14 +223,16 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q10 — §2.10 Done-For-You Requirements ═══════════════════════
+  // INT-04 — §2.10 Done-For-You Requirements
   {
     id: 'dfyRequirement',
     field: 'dfyRequirement',
     type: 'single-choice',
-    stepLabel: 'Question 10 of 10',
+    phase: 'step3',
+    stepLabel: 'Intent',
     title: 'Do you currently need a professional team to build or implement something for your business?',
     hint: 'This includes websites, sales funnels, social media systems, automation, or any other digital work.',
+    showIf: isBusinessRelevant,
     choices: [
       { key: 'A', label: 'No — I can handle it myself',                              value: 0  },
       { key: 'B', label: 'Not sure yet',                                             value: 2  },
@@ -203,15 +241,16 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     ],
   },
 
-  // ══ Q10b — §2.10 DFY What they need (conditional: dfyRequirement ≥ 5)
+  // INT-06 — §2.10 DFY What they need
   {
     id: 'dfyNeeds',
     field: 'dfyNeeds',
     type: 'multi-choice',
-    stepLabel: 'Question 10b',
+    phase: 'step3',
+    stepLabel: 'Intent',
     title: 'What do you need help implementing?',
     subtitle: 'Select all that apply',
-    showIf: (a) => (a.dfyRequirement ?? 0) >= 5,
+    showIf: (a) => isBusinessRelevant(a) && (a.dfyRequirement ?? 0) >= 5,
     choices: [
       { key: 'A', label: 'Website',                     value: 'website'     },
       { key: 'B', label: 'Online Store',                value: 'online-store'},
@@ -227,19 +266,22 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
 
 ];
 
-// Filter to active questions based on current answers
 export function getActiveQuestions(answers: Record<string, any>): QuizQuestion[] {
   return QUIZ_QUESTIONS.filter(q => !q.showIf || q.showIf(answers));
 }
 
-// Re-number step labels dynamically after filtering
-export function getNumberedQuestions(answers: Record<string, any>): QuizQuestion[] {
+export function getQuestionsForPhase(answers: Record<string, any>, phase: string): QuizQuestion[] {
   const active = getActiveQuestions(answers);
-  const totalQ = active.filter(q => q.type !== 'contact-block').length;
+  return active.filter(q => q.phase === phase);
+}
+
+// Re-number step labels dynamically per phase
+export function getNumberedQuestions(answers: Record<string, any>, phase: string): QuizQuestion[] {
+  const active = getQuestionsForPhase(answers, phase);
   let qNum = 0;
   return active.map(q => {
     if (q.type === 'contact-block') return q;
     qNum++;
-    return { ...q, stepLabel: `Question ${qNum} of ${totalQ}` };
+    return { ...q, stepLabel: `Question ${qNum} of ${active.length}` };
   });
 }
