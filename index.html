@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Su Collection × UVA VEC Free Workshop</title>
+  <meta name="description" content="Join the free interactive workshop for tailors and small business owners to grow their skills and revenue." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container navbar-inner">
+      <a href="#" class="navbar-logo">
+        <img src="image.png" alt="Su Collection" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+        <div class="navbar-brand-text">
+          <span>Su Collection</span>
+          <span>× UVA VEC</span>
+        </div>
+      </a>
+
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-bg-circle hero-bg-circle-1"></div>
+      <div class="hero-bg-circle hero-bg-circle-2"></div>
+    </div>
+    <div class="container hero-grid">
+      <div class="hero-content animate-fade-up">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-dot"></span> නොමිලේ Interactive Workshop
+        </div>
+        <h1 class="hero-title">
+          Master your craft.<br /><em style="font-style: normal; font-family: var(--font-sans);">ඔබේ ව්‍යාපාරය දියුණු කරගන්න.</em>
+        </h1>
+        <p class="hero-desc" style="line-height: 1.7; font-size: 1.1rem; color: var(--ink-muted);">
+          ඔබට professional tailoring ඉගෙන ගැනීමට හෝ දැනට පවතින ඔබේ ව්‍යාපාරය online scale කිරීමට අවශ්‍ය වුවත්, මෙම exclusive free workshop එක හරහා ඔබේ personalised growth path එක සොයාගන්න.
+        </p>
+      </div>
+
+      <div class="hero-visual animate-scale-in delay-200">
+        <div class="hero-spots" style="font-family: var(--font-sans);">සීමිත ආසන ප්‍රමාණයක් / Limited Spots</div>
+        <div class="hero-card">
+          <div class="hero-card-date">
+            <div class="hero-card-date-box">
+              <span>19</span>
+              <span>Sep</span>
+            </div>
+            <div class="hero-card-date-text" style="text-align: left;">
+              <h4 style="font-family: var(--font-sans);">සෙනසුරාදා Workshop</h4>
+              <p>උදේ 10:00 ට — Online & Interactive</p>
+            </div>
+          </div>
+          <ul class="hero-card-features">
+            <li class="hero-card-feature"><div class="hero-card-feature-check">✓</div> ඔබටම ගැලපෙන growth roadmap එකක්</li>
+            <li class="hero-card-feature"><div class="hero-card-feature-check">✓</div> Technical tailoring රහස්</li>
+            <li class="hero-card-feature"><div class="hero-card-feature-check">✓</div> Digital marketing සිස්ටම්</li>
+          </ul>
+          <button class="btn btn-primary btn-lg" style="width: 100%; margin-top: 2rem; box-shadow: 0 10px 30px rgba(219,39,119,0.3);" onclick="window.Funnel.openQuiz()">
+            නොමිලේ ලියාපදිංචි වන්න / Register for Free →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Funnel Quiz Overlay (Hidden by default) -->
+  <div id="quiz-overlay" class="quiz-overlay" style="display: none;">
+    <div class="quiz-backdrop" onclick="window.Funnel.closeQuiz()"></div>
+    <div class="quiz-shell-wide">
+      <div class="quiz-main-panel" id="quiz-main-panel">
+        <div class="quiz-header-bar">
+          <div class="quiz-header-logo">
+            <img src="image.png" alt="Su Collection" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">
+            <span>Su Collection × UVA VEC</span>
+          </div>
+          <div class="quiz-progress-wrap" id="quiz-header-progress">
+            <div class="quiz-progress-label" id="quiz-progress-label">Registration</div>
+          </div>
+          <button class="quiz-close-btn" onclick="window.Funnel.closeQuiz()">✕</button>
+        </div>
+        
+        <!-- Dynamic Content Injected Here -->
+        <div id="quiz-content-area" style="flex: 1;"></div>
+        
+        <div id="quiz-nav" class="quiz-nav" style="display: none;">
+          <button class="btn-back" id="btn-prev" onclick="window.Funnel.goPrev()">← ආපසු / Back</button>
+          <div id="quiz-nav-right">
+            <button class="btn-next" id="btn-next-nav" onclick="window.Funnel.goNext()" style="display:none;">ඉදිරියට / Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auto Popup Ad -->
+  <div id="promo-popup" class="promo-popup" style="display: none;">
+    <div class="promo-backdrop" onclick="document.getElementById('promo-popup').style.display='none'"></div>
+    <div class="promo-content">
+      <button class="promo-close" onclick="document.getElementById('promo-popup').style.display='none'">✕</button>
+      <div class="promo-icon">🎁</div>
+      <h2 style="line-height:1.2; margin-bottom:0.5rem; font-size:2rem; color:var(--rose-deep);">නොමිලේ පැවැත්වෙන වැඩමුළුව</h2>
+      <h3 style="font-family:var(--font-sans); font-size:1rem; color:var(--rose); margin-bottom:1rem; font-weight:600;">Free Workshop</h3>
+      <p style="margin-bottom: 2rem; color:var(--ink-muted); font-size:1.05rem; line-height: 1.6;">
+        ඔබේ මැහුම් කුසලතා දියුණු කරගන්න සහ ව්‍යාපාරය අන්තර්ජාලය හරහා වර්ධනය කරගන්න. දැන්ම ඔබේ ආසනය වෙන්කරවා ගන්න!<br>
+        <span style="font-size:0.85em; color:var(--ink-light); display:block; margin-top:0.5rem;">Master your craft and scale your business online. Secure your spot now!</span>
+      </p>
+      <button class="btn btn-primary btn-lg" style="width:100%; font-size: 1.1rem;" onclick="document.getElementById('promo-popup').style.display='none'; window.Funnel.openQuiz()">
+        දැන්ම ලියාපදිංචි වන්න / Register Now →
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
